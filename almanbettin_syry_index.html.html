@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ky">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Алманбеттин Сыры — Матрица пути</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>◈</text></svg>">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Philosopher:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--bg2:#111118;--gold:#c9a84c;--ember:#d4553a;--frost:#6bb8c4;--sage:#7aa67e;--plum:#9b6b9e;--cream:#e8dcc8;--text:#d4cfc5;--dim:#7a756c;--card:rgba(18,18,28,0.85)}
+html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--text);font-family:'Philosopher',serif}
+.w{max-width:660px;margin:0 auto;padding:20px 16px}
+h1{font-size:1.5rem;color:var(--gold);text-align:center;letter-spacing:2px}
+.sub{text-align:center;color:var(--dim);font-size:0.85rem;margin:4px 0 16px}
+.card{background:var(--card);border-radius:12px;padding:16px;margin-bottom:10px;border:1px solid rgba(255,255,255,0.05);cursor:pointer;transition:all .3s}
+.card:hover{border-color:var(--gold);transform:translateY(-1px)}
+.card h3{font-size:1rem;margin-bottom:4px}
+.card p{font-size:0.82rem;color:var(--dim);line-height:1.5}
+.sec{border-left:3px solid var(--gold);padding:10px 14px;margin-bottom:10px;background:var(--card);border-radius:0 10px 10px 0}
+.sec.red{border-color:var(--ember)}.sec.green{border-color:var(--sage)}.sec.blue{border-color:var(--frost)}.sec.purple{border-color:var(--plum)}
+.sec h4{font-size:0.9rem;color:var(--cream);margin-bottom:4px}
+.sec p,.sec pre{font-size:0.85rem;color:var(--dim);line-height:1.7;white-space:pre-wrap;font-family:inherit}
+.btn{background:linear-gradient(135deg,#c9a84c,#8a6d2b);color:#0a0a0f;border:none;border-radius:8px;padding:10px 24px;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:inherit;margin:4px}
+.btn2{background:transparent;color:var(--dim);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:8px 18px;font-size:0.82rem;cursor:pointer;font-family:inherit;margin:4px}
+.btn3{background:rgba(201,168,76,0.1);color:var(--gold);border:1px solid rgba(201,168,76,0.2);border-radius:8px;padding:8px 18px;font-size:0.82rem;cursor:pointer;font-family:inherit;margin:4px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.abtn{background:var(--card);border:1px solid rgba(201,168,76,0.15);border-radius:10px;padding:12px;text-align:center;cursor:pointer;transition:all .2s}
+.abtn:hover,.abtn.on{border-color:var(--gold);background:rgba(201,168,76,0.08)}
+.abtn .n{font-size:1.3rem;font-weight:700;color:var(--gold)}
+.abtn .c{font-size:0.7rem;color:var(--dim)}
+.badge{display:inline-block;background:rgba(201,168,76,0.15);color:var(--gold);padding:2px 10px;border-radius:20px;font-size:0.75rem;font-weight:700}
+.exp{background:var(--card);border-radius:10px;margin-bottom:8px;border:1px solid rgba(255,255,255,0.05);overflow:hidden}
+.exp-h{padding:10px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.exp-h span{font-size:0.85rem;font-weight:700}
+.exp-b{padding:0 14px 12px;font-size:0.82rem;color:var(--dim);line-height:1.8;white-space:pre-wrap;display:none}
+.exp.open .exp-b{display:block}
+.hidden{display:none}
+.chk{width:16px;height:16px;border-radius:3px;border:2px solid #444;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.chk.on{border-color:#4ade80;background:#4ade80}
+.nav{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:14px 0}
+.sym-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;margin-bottom:4px;cursor:pointer;border:1px solid rgba(255,255,255,0.05)}
+.sym-row:hover{border-color:var(--gold)}
+@media(max-width:500px){.grid4{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+<div class="w" id="app"></div>
+<script>
+
+// ═══ STATE ═══
+var S={screen:"home",age:0,gender:null,symptom:null,sel:{},bio:{},childAge:null,childAns:null};
+function go(screen,extra){if(extra)Object.assign(S,extra);S.screen=screen;render();window.scrollTo(0,0)}
+function reset(){S={screen:"home",age:0,gender:null,symptom:null,sel:{},bio:{},childAge:null,childAns:null};render()}
+
+// ═══ DATA ═══
+var EL=[{id:"man",name:"МАН",sphere:"Здоровье, тело",range:[1,8],color:"#8B6914"},{id:"as",name:"АС",sphere:"Отношения, чувства",range:[9,16],color:"#C41E3A"},{id:"al",name:"АЛ",sphere:"Деньги, ресурс",range:[17,24],color:"#1B6B93"},{id:"ar",name:"АР",sphere:"Род, предки",range:[25,32],color:"#2D6A4F"},{id:"om",name:"ОМ",sphere:"Дар, смысл",range:[33,40],color:"#6B21A8"}];
+var LN=[{n:1,kg:"АРЗЫБА",ru:"Кармический урок"},{n:2,kg:"ТЕҢДИК",ru:"Сохранение"},{n:3,kg:"БАТА",ru:"Род"},{n:4,kg:"ЧЫЙЫР",ru:"Магия"},{n:5,kg:"ТОСОР",ru:"Борьба"},{n:6,kg:"ЖАМБЫ",ru:"Ключи"},{n:7,kg:"ЧИЛДЕ",ru:"Трансформация"},{n:8,kg:"ТААЖЫ",ru:"Благословение"}];
+function gE(a){if(a<=0)return EL[0];for(var i=0;i<EL.length;i++)if(a>=EL[i].range[0]&&a<=EL[i].range[1])return EL[i];return EL[4]}
+function gL(a){return a<=0?null:LN[(a-1)%8]}
+
+var MF=[
+{age:9,fire:"ШАМ-БАЛА",type:"Искра",rit:"КӨӨКӨР",ess:"Первая искра. Чувствительность, открытость.",root:"Связь с матерью слишком плотная — зависимость от оценки.",ritD:"Сосуд силы рода. Переход в мужскую линию.",how:"НЕДЕЛЯ 1: Найдите мужчину, которого уважаете. Запишите 3 его качества.\nНЕДЕЛЯ 2: Одно дело полностью самостоятельно — от начала до конца.\nНЕДЕЛЯ 3: Запишите ситуации поиска одобрения. В одной — решите сами.\n21 ДЕНЬ: Ежедневно одно самостоятельное решение.",dis:"Зависимость от оценки.",manas:"Манас-искра. Карабөрк — отражение, не союз."},
+{age:18,fire:"ОТ-БАЛА",type:"Огонь",rit:"УКСАР",ess:"Расцвет огня. Воля, действие, первые решения.",root:"Несдержанный огонь — сила быстрее зрелости.",ritD:"Пояс, связывающий с предками. Поворот от огня чувств к огню действия.",how:"НЕДЕЛЯ 1: Одно незавершённое дело — доведите до конца.\nНЕДЕЛЯ 2: Дайте слово одному человеку — сдержите точно в срок.\nНЕДЕЛЯ 3: Где реагируете импульсивно? 24 часа задержки перед реакцией.\n21 ДЕНЬ: Ежедневно одно действие воли, не порыва.",dis:"Горячность, импульсивность.",manas:"Манас-огонь. Акылай — мост между силами."},
+{age:27,fire:"ӨРТ-БАЛА",type:"Пожар",rit:"АК ЖОЛ",ess:"Огненный перелом. Энергия на пределе.",root:"Эго выше сердца. Может обрушить созданное.",ritD:"Калпак + жоолук = светлый путь.",how:"НЕДЕЛЯ 1: Запишите: что разрушили, доказывая правоту? Конкретно.\nНЕДЕЛЯ 2: Одна «война» — отпустите. Удалите переписку, перестаньте обсуждать.\nНЕДЕЛЯ 3: Одному человеку признайте ошибку — лично, без оправданий.\n21 ДЕНЬ: Замечайте желание «доказать» — молчите. Записывайте.",dis:"Выгорание, разрушение.",manas:"Манас-пожар. Кызсайкал — равная сила."},
+{age:36,fire:"КҮН-АТА",type:"Солнце",rit:"ТОН",ess:"Огонь = свет. Слово = действие.",root:"Испытание словом. Страх высоты.",ritD:"Зрелость слова. Тон + Уксар + Калпак + Жоолук.",how:"НЕДЕЛЯ 1: Напишите ОДНО обещание себе — не цель, а обещание.\nНЕДЕЛЯ 2: Покажите одному свидетелю. Не для одобрения — для фиксации.\nНЕДЕЛЯ 3: Первый конкретный шаг. Не план — действие.\n40 ДНЕЙ: Ежедневно одно действие по обещанию.",dis:"Гордыня, холодность.",manas:"Манас-солнце. Каныкей — зрелый союз."}
+];
+
+var FF=[
+{age:12,state:"ШАМ",type:"Первый свет",rit:"ТЕҢДӨӨ",ess:"Пробуждение. Сборка пяти стихий.",root:"Мать не рядом или не прошла сама.",ritD:"Упаковка стихий. Мать или старшая женщина сопровождает.",how:"НЕДЕЛЯ 1: Нарисуйте 5 кругов — тело, чувства, дело, род, смысл. Какой пустой?\nНЕДЕЛЯ 2: Для пустого — одно действие каждый день.\nНЕДЕЛЯ 3: Найдите женщину-наставницу. Встретьтесь.\n21 ДЕНЬ: По действию для каждого пустого круга. Перерисуйте.",dis:"Рассыпанность."},
+{age:17,state:"АЙАР",type:"Прозрачность",rit:"КООКЕМЕР",ess:"Способность к союзу без потери себя.",root:"Центр отдан первому мужчине. Корень финансовых блоков.",ritD:"Обретение внутреннего центра. Мера — сила, не ограничение.",how:"НЕДЕЛЯ 1: Список: что делаю для чужого одобрения? 5 пунктов. Один — перестать.\nНЕДЕЛЯ 2: Назовите цену своему часу. Запишите. Живите с этой цифрой неделю.\nНЕДЕЛЯ 3: День без «что он/она подумает». Записывайте моменты.\n21 ДЕНЬ: Ежедневно одно решение из собственного центра.",dis:"Зависимость от мужчины."},
+{age:25,state:"БУЛАК",type:"Источник",rit:"Место в роду",ess:"Глубина, питающая вода. Вмещение без потери себя.",root:"Незнание места в родовой линии. Материнство как чужой сценарий.",ritD:"Сборка материнской линии: мать, бабушка, прабабушка.",how:"НЕДЕЛЯ 1: Большой лист — 3 поколения женщин. Для каждой: как жила? чем жертвовала? что передала?\nНЕДЕЛЯ 2: Найдите повторение. Два списка: «беру с благодарностью» и «ставлю на землю».\nНЕДЕЛЯ 3: Позвоните маме: «Что бы ты сделала иначе?» Запишите.\n21 ДЕНЬ: Действие из «беру» + действие против «ставлю на землю».",dis:"Жертвенность, истощение."},
+{age:52,state:"ОТ ЭНЕ",type:"Очаг",rit:"Особая зрелость",ess:"Вода, дошедшая до силы рождения огня.",root:"Непринятие новой формы.",ritD:"Статус «эне». Слово имеет вес поколений.",how:"НЕДЕЛЯ 1: Запишите 10 вещей, которые знаете и молодые не знают.\nНЕДЕЛЯ 2: Найдите одного человека для передачи опыта.\nНЕДЕЛЯ 3: Перестаньте бороться с одним признаком возраста.\n21 ДЕНЬ: Ежедневно записывайте: что передали сегодня.",dis:"Борьба с возрастом."}
+];
+
+
+var CHILD=[
+{age:1,code:"Ырыскы",line:"АРЗЫБА",title:"Миссия и выбор пути",desc:"Первый год — зеркало родительского поля. Ребёнок считывает спокойствие или тревогу. В год активируется ырыскы — первый центр силы.",special:"В 1 год — кармический урок родителей, не ребёнка. Важно развязать путы и дать выбрать свой путь. Раньше резали — сегодня развязывают. Современный ребёнок чувствительнее.",nav:"Как мать чувствует себя? Как отец присутствует? Есть ли безопасность и телесное тепло?",action:"ТУШОО ТОЙ — пошагово:\n1. Найдите Акак эне — зрелую женщину с внутренней устойчивостью.\n2. Она готовит ала жип. Деревянный нож (не стальной).\n3. Белая ткань — дорожка чистого начала.\n4. Подготовьте 5 оймок (5 кукол или предметов, представляющих 5 направлений). Поставьте их в конце белой дорожки.\n5. Перевяжите ножки ала жипом. Акак эне РАЗВЯЗЫВАЕТ деревянным ножом (не стальным — мягкое действие).\n6. Ребёнок идёт по белой дорожке сам — не подсказывайте, не направляйте.\n7. К какому оймок потянулся — ЗАПИШИТЕ. Это не приговор, а подсказка с чего начать.\n8. Красная одежда — активация ырыскы (первый центр силы).",risk:"Без открытия пути — до 33-40 лет ощущение «живу не свою жизнь»."},
+{age:2,code:"Кут",line:"ТЕҢДИК",title:"Баланс и равновесие",desc:"Тело учится балансу. Кут — энергия равновесия.",nav:"Предсказуемый ритм. Не ссориться при ребёнке.",action:"1. Расписание дня на стену: подъём, еда, прогулка, сон в одно время. 21 день.\n2. Ссоры — только за дверью. Ребёнок впитывает конфликт телом.\n3. Не менять среду. При переезде — сохранить ритуалы.\n4. Каждый вечер один и тот же ритуал укладывания.",risk:"Из крайности в крайность. Начинает и бросает."},
+{age:3,code:"Береке",line:"БАТА",title:"Благословение через слово",desc:"Язык = программирование жизни. Каждое слово — код.",nav:"Давайте БАТА. Слово в 3 года = программа на жизнь.",action:"1. Каждый вечер перед сном — одно бата:\n   «Жолуң ачык болсун» (путь открыт)\n   «Күчтүү бол» (будь сильным)\n   «Сени сүйөбүз» (мы любим тебя)\n2. Список ЗАПРЕЩЁННЫХ фраз на холодильник:\n   «Из тебя ничего не выйдет» / «Замолчи» / «Ты как отец»\n3. Говорите о ребёнке хорошо даже когда не слышит.\n4. Читайте каждый день — программирование красивым словом.",risk:"Внутренний критик. Не может назвать цену."},
+{age:4,code:"Ишеним",line:"ЧЫЙЫР",title:"Доверие и пробуждение рода",desc:"Тело-антенна. Ишеним — доверие. Уязвимо здоровье.",nav:"Не пугать. Рассказывайте о роде.",action:"1. Каждую неделю — одна история о предке простым языком.\n2. Никаких страшных мультфильмов, новостей, криков.\n3. Если боится — обнять: «Я рядом. Ты в безопасности». Никогда: «Ерунда».\n4. Нарисуйте вместе дерево рода — повесьте на стену.",risk:"Не доверяет интуиции. Контроль. Тревога."},
+{age:5,code:"Илим",line:"ТОСОР",title:"Знание, полиглот",desc:"Мозг открыт. Каждое «нет» на «хочу узнать» — закрывает канал.",nav:"НЕ ОТКАЗЫВАЙТЕ. Хочет язык — дайте.",action:"1. На каждое «хочу узнать» — ответ «ДА, давай».\n2. Каждую субботу — одно новое: музей, мастер-класс, поход.\n3. Хочет разобрать часы — дайте старые и отвёртку.\n4. Не оценивать результат. Поощрять процесс.",risk:"«Мне поздно учиться». Избегание нового."},
+{age:6,code:"Табият",line:"ЖАМБЫ",title:"Природа и призвание",desc:"Тело показывает ключ. К чему тянется — это не фантазия, это ключ.",nav:"Наблюдайте. Не навязывайте.",action:"1. Блокнот: 7 дней записывайте — что делает когда никто не заставляет?\n2. Из записей выберите одно и поддержите.\n3. «Хочу быть драконом» = хочет силу/свободу. Не смейтесь.\n4. Уберите один навязанный кружок. Замените на выбранное.",risk:"Работает не своим делом. Деньги не приходят."},
+{age:7,code:"Дабагер",line:"ЧИЛДЕ",title:"Осознанные привычки",desc:"Первая трансформация. Смена зубов. Привычки на жизнь.",nav:"Привычки через пример, не наказание.",action:"1. Хотите чтобы читал — читайте сами при нём.\n2. Правило «доделай»: начал — заверши. Мягко.\n3. После школы: 30 мин свободной игры, потом уроки.\n4. Не торопите. Усталость, капризы — тело перестраивается.",risk:"Хаос. Каждый переход = стресс."},
+{age:8,code:"Таажы",line:"ТААЖЫ",title:"Благословение тела",desc:"Завершение цикла МАН. Тело = ресурс или враг.",nav:"НИ ОДНОГО слова стыда. НИ ОДНОГО физического наказания.",action:"1. Проверка: какие слова о теле в доме? «Толстый» — СТОП.\n2. Спорт/танцы/бассейн — то, что приносит РАДОСТЬ.\n3. Никакого физического наказания.\n4. Каждую неделю — совместная активность: велосипед, прогулка.",risk:"Тело как враг. Хронические болезни. Стыд."},
+{age:9,code:"Көөкөр",line:"АРЗЫБА",title:"Сосуд силы рода",desc:"Первый мужской переход. Көөкөр — сосуд достоинства.",nav:"Мальчику НЕОБХОДИМ мужской наставник.",action:"ДЛЯ МАЛЬЧИКА — ОБРЯД КӨӨКӨР:\n1. Мужчина рода (отец, дядя, дед) приобретает или делает Көөкөр — сосуд силы рода. Это символ: мальчик получает свой собственный сосуд достоинства.\n2. Зрелая женщина (НЕ мать, а Акак эне или бабушка) вручает Көөкөр мальчику. Между мужской силой и мальчиком стоит женщина-проводник — это принцип баланса.\n3. С этого момента мальчик начинает отвечать за одно конкретное дело в семье: ухаживать за животным, помогать в мастерской, приносить воду. Полностью его зона ответственности.\n4. Күч жыйнатуу — накопление силы: запишите на спорт, дайте физическую дисциплину, но через уважение, не через муштру.\n5. ЗАДАНИЕ: мальчик должен сделать одно дело от начала до конца без помощи. Починить, построить, организовать. И получить признание от мужчины рода.\n\nДЛЯ ДЕВОЧКИ:\n1. В 9 лет начинается эмоциональная автономия — поддержите отделение, не удерживайте.\n2. Дайте пространство для собственных решений: выбор одежды, друзей, увлечений.\n3. ЗАДАНИЕ: дайте ей организовать одно семейное событие (ужин, прогулку) — от идеи до реализации.",risk:"Мужчина: нет оси, деньги утекают. Женщина: ищет отца в партнёре."},
+{age:10,code:"Жаңы формат",line:"ТЕҢДИК",title:"Новый характер",desc:"Формирует новый характер после 9-летнего перехода.",nav:"Не давить. Стабильность.",action:"1. Не пугайтесь изменений — это нормально.\n2. Никаких «раньше ты был лучше». Никаких сравнений.\n3. Каждый вечер: «Что хорошего?» — без оценки.\n4. Если замкнулся — не давить. «Когда захочешь — я здесь».",risk:"Смена масок. «Не знаю, кто я»."},
+{age:11,code:"Тез өзгөрүү",line:"БАТА",title:"Модели любви",desc:"Копирует модели из семьи. Видит правду, не слова.",nav:"Покажите уважение, границы, нежность.",action:"1. Честно: что видит ребёнок в ваших отношениях? Запишите.\n2. НИКОГДА не втягивать в конфликт. Не говорить «ты как отец».\n3. Одно действие здоровых отношений при ребёнке на этой неделе.\n4. Если в разводе — уважение к бывшему при ребёнке.",risk:"Повторяет токсичные сценарии по кругу."},
+{age:12,code:"Теңдөө",line:"ЧЫЙЫР",title:"Вход во взрослую жизнь",desc:"ПОРОГ. До 12 — покровительство. После — судьба. Вложите ВСЁ до 12.",nav:"Главный рубеж. Теңдөө для девочки. Мүчөлүү жаш.",action:"ДЛЯ ДЕВОЧКИ — ТЕҢДӨӨ:\n1. Найдите женщину-наставницу (мать, бабушка, тётя).\n2. Вместе с девочкой: 5 нитей разных цветов (тело, чувства, дело, род, смысл).\n3. Каждая женщина-наставница заплетает одну косичку.\n4. Затем 5 косичек соединяются в одну косу с накосником.\n5. Смысл: твои стихии собраны в одно целое. Ты — целая.\n\nДЛЯ МАЛЬЧИКА — проверка Көөкөр:\n1. Проверьте: собрана ли мужская ось? Есть ли наставник?\n2. Если Көөкөр не был проведён в 9 — проведите сейчас (см. возраст 9).\n3. Дайте мальчику задание-испытание: организовать что-то самостоятельно для семьи.\n\nМҮЧӨЛҮҮ ЖАШ — ДЛЯ ВСЕХ (и мальчик, и девочка):\n1. День тишины: облегчённое питание, уборка комнаты, внутренняя настройка.\n2. 12 красных нитей. На каждой завязать узел — что отпускается из детства.\n3. На рассвете, в нечётный лунный день — обрезать нити.\n4. Остатки — сжечь или закопать.\n5. На чистом листе написать: «Что я хочу в новом периоде жизни?»\n\nРАЗГОВОР (для обоих):\nНе лекция — диалог. «До сих пор мы оберегали тебя. Теперь начинается твой путь. Мы рядом, но решения — твои. Мы верим в тебя.»",risk:"Автопилот чужих программ."}
+];
+
+var SC={man:{1:["Родовая травма"],2:["Нарушение ритма"],3:["Родовые болезни"],4:["Страхи"],5:["Сломлена воля"],6:["Навязан путь"],7:["Стресс"],8:["Нелюбовь к телу"]},as:{9:["Предательство"],10:["Конфликты"],11:["Токсичная модель"],12:["Непрожитый переход"],13:["Разрыв"],14:["Травма"],15:["Срыв"],16:["Цинизм"]},al:{17:["Обесценивание"],18:["Незрелая сила"],19:["Бедные"],20:["Авантюры"],21:["Кредиты"],22:["Ключ не взят"],23:["Крах"],24:["Обесценивание"]},ar:{25:["Отречение"],26:["Растворение"],27:["Программы"],28:["Бремя"],29:["Война"],30:["Нет места"],31:["Кризис"],32:["Непрощение"]},om:{33:["Зов"],34:["Абстракция"],35:["Не узнан"],36:["Форсирование"],37:["Обесценивание"],38:["Не замечен"],39:["Страх"],40:["Зря"]}};
+
+var MAT={m:"Связь с матерью влияет на финансовый поток.\nПоддерживающая → право на ресурс.\nУдерживающая → сосуд не сформирован:\n• Не может назвать цену\n• Деньги утекают\n• Зарабатывает для других\nДействие: пройти Көөкөр → Уксар.",f:"Связь с первым мужчиной — ключ.\nЦентр внутри → свобода.\nЦентр отдан → блокировка:\n• При расставании — крах\n• «Мне неудобно просить»\nДействие: Теңдөө → Коокемер."};
+
+// ═══ EXPANDABLE ═══
+function expHTML(title,color,content,open){return '<div class="exp'+(open?' open':'')+'"><div class="exp-h" onclick="this.parentElement.classList.toggle(\'open\')"><span style="color:'+color+'">'+title+'</span><span style="color:var(--dim)">›</span></div><div class="exp-b">'+content+'</div></div>'}
+
+// ═══ RENDER ═══
+function render(){
+var h='';var s=S.screen;
+var n=S.age;var el=gE(n);var ln=gL(n>=1&&n<=40?n:((n-1)%40)+1);
+var sEl=S.symptom?EL.find(function(e){return e.id===S.symptom}):null;
+var curI=S.gender==="male"?(n>=9?MF.slice().reverse().find(function(f){return n>=f.age}):null):S.gender==="female"?(n>=12?FF.slice().reverse().find(function(f){return n>=f.age}):null):null;
+var drA=sEl?(S.gender==="male"?(sEl.id==="al"?18:sEl.id==="as"?9:sEl.id==="ar"?25:33):(sEl.id==="al"?17:sEl.id==="as"?12:sEl.id==="ar"?25:33)):null;
+var dr=drA?(S.gender==="male"?MF.find(function(f){return f.age===drA}):FF.find(function(f){return f.age===drA})):null;
+
+if(s==="home"){
+  h+='<div style="text-align:center;padding:20px 0"><div style="font-size:2rem;opacity:0.6;margin-bottom:8px">◈</div>';
+  h+='<h1>АЛМАНБЕТТИН СЫРЫ</h1><div class="sub">Матрица пути</div>';
+  h+='<p style="font-size:0.82rem;color:var(--dim);max-width:440px;margin:0 auto 16px;line-height:1.7">Древние знания предоставляют возможность жить, но лишь если человек применяет их на практике.</p>';
+  h+='<div style="font-size:0.75rem;color:var(--dim);margin-bottom:20px"><span style="color:#C41E3A">♂ Огонь → Күн-ата</span> • <span style="color:#1B6B93">♀ Вода → От Эне</span></div></div>';
+  h+='<div class="card" onclick="go(\'age\')"><h3 style="color:var(--ember)">◈ Навигация</h3><p>Диагностика 0–60. Найти корень и решение в здоровье, отношениях, деньгах, роду или смысле.</p></div>';
+  h+='<div class="card" onclick="go(\'pregnancy\')"><h3 style="color:#E67E22">🌱 Беременность</h3><p>Путеводитель 9 месяцев. Обряды, цвета, предметы.</p></div>';
+  h+='<div class="card" onclick="go(\'parent\')"><h3 style="color:var(--sage)">🧒 Навигация для родителей <span style="font-size:0.7rem;color:var(--dim)">1–12 лет</span></h3><p>До 12 ребёнок в поле родителей. Что вкладывать в каждом возрасте.</p></div>';
+  h+='<div class="card" onclick="go(\'roots\')"><h3 style="color:var(--plum)">📖 Корни пути <span style="font-size:0.7rem;color:var(--dim)">Жолдун тамыры</span></h3><p>Живая карта обрядов. Нике, Тон, Тушоо той. Төрт от, Төрт суу, Мүчөл, 40 чоро.</p></div>';
+}
+
+else if(s==="parent"){
+  h+='<h1>🧒 Навигация для родителей</h1><div class="sub">1–12 лет</div>';
+  h+='<div class="sec"><h4>Почему это важно</h4><p>До 12 лет ребёнок живёт в поле родителей. Он ещё не вошёл в полную личную судьбу. Он считывает дом, речь, прикосновение, тревогу, любовь и уклад семьи.\n\nВсё, что родители вкладывают до 12 лет, становится основой его тела, чувств, мышления и будущего пути.\n\nС 12 лет начинается период включения личной судьбы.</p></div>';
+  h+='<p style="text-align:center;color:var(--gold);font-size:0.9rem;margin:12px 0">Выберите возраст ребёнка:</p>';
+  h+='<div class="grid4">';
+  CHILD.forEach(function(c,i){h+='<div class="abtn" onclick="go(\'parent-age\',{childAge:'+i+'})"><div class="n">'+c.age+'</div><div class="c">'+c.code+'</div></div>'});
+  h+='</div>';
+  h+='<div class="nav"><button class="btn2" onclick="go(\'home\')">← Главная</button></div>';
+}
+
+else if(s==="parent-age"){
+  var c=CHILD[S.childAge];
+  h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><button class="btn2" onclick="go(\'parent\')">← Назад</button><span class="badge">'+c.code+' ('+c.line+') • '+c.age+(c.age===1?' год':c.age<5?' года':' лет')+'</span></div>';
+  h+='<div class="sec"><h4>'+c.age+(c.age===1?' год':c.age<5?' года':' лет')+' — '+c.code+'</h4><p>'+c.desc+'</p></div>';
+  if(c.special)h+='<div class="sec purple"><h4>Особый смысл</h4><p>'+c.special+'</p></div>';
+  h+='<div class="sec green"><h4>Навигация для родителей</h4><p>'+c.nav+'</p></div>';
+  h+='<div class="sec blue"><h4>Конкретные действия</h4><p>'+c.action+'</p></div>';
+  h+='<div class="sec red"><h4>Если не прожито</h4><p>'+c.risk+'</p></div>';
+  h+='<div class="nav">';
+  if(S.childAge>0)h+='<button class="btn2" onclick="go(\'parent-age\',{childAge:'+(S.childAge-1)+'})">← Пред.</button>';
+  if(S.childAge<CHILD.length-1)h+='<button class="btn2" onclick="go(\'parent-age\',{childAge:'+(S.childAge+1)+'})">След. →</button>';
+  h+='<button class="btn2" onclick="go(\'parent\')">Все возрасты</button></div>';
+}
+
+else if(s==="age"){
+  h+='<h1>Возраст</h1><div class="sub">0–60 лет</div>';
+  h+='<div style="text-align:center;margin-bottom:14px"><input type="number" min="0" max="60" value="'+(S.age||'')+'" onchange="S.age=parseInt(this.value)||0;render()" placeholder="0–60" style="background:var(--card);border:2px solid #333;border-radius:10px;padding:12px;color:var(--gold);font-size:1.5rem;font-weight:700;text-align:center;width:100px;outline:none;font-family:inherit"></div>';
+  h+='<div class="grid2">';
+  h+='<div class="abtn'+(S.gender==="male"?" on":"")+'" onclick="S.gender=\'male\';render()"><div class="n">♂</div><div class="c">Мужчина</div></div>';
+  h+='<div class="abtn'+(S.gender==="female"?" on":"")+'" onclick="S.gender=\'female\';render()"><div class="n">♀</div><div class="c">Женщина</div></div></div>';
+  if(n>=0&&n<=60&&S.gender){
+    if(n>=1&&n<=40){
+      h+='<div class="sec"><h4 style="color:'+el.color+'">'+n+' / '+el.name+' / '+(ln?ln.kg:'')+'</h4><p>'+el.sphere+' • '+(ln?ln.ru:'')+'</p>';
+      // Age descriptions
+      var AD={13:"Борьба в мире чувств. Подростковый бунт как способ ощутить себя.",14:"Ключи к отношениям. Свой язык чувств.",15:"Трансформация отношений. Мощные эмоциональные перестройки.",16:"Благословение чувств. Эмоциональная зрелость.",17:"Коокемер. Вход в мир реализации.",18:"Уксар. Форма силы. Самостоятельность.",19:"Родовые сценарии денег. Как в роду относились к деньгам.",20:"Магия денег. Ресурс появляется или исчезает.",21:"Борьба за ресурсы.",22:"Ключи к реализации. Должен проявиться ключ.",23:"Трансформация ресурсов. Резкие перемены.",24:"Мүчөлүү жаш. Завершение 2-го круга.",25:"Поворот к роду. Своё место в линии.",26:"Родовое равновесие. Принадлежность vs автономия.",27:"Ак жол. Родовые программы глубинно.",28:"Магия рода. Невидимые процессы.",29:"Борьба с родовыми сценариями.",30:"Ключи к роду. Своё место.",31:"Трансформация родовой роли.",32:"Благословение рода.",33:"Знак дара. Зов предназначения.",34:"Сохранение смысла.",35:"Родовое измерение дара.",36:"Мүчөлүү жаш. Тон. Дар раскрывается или кризис.",37:"Борьба за смысл.",38:"Ключи к предназначению.",39:"Главная трансформация.",40:"Великое благословение. Полнота."};
+      if(AD[n])h+='<br><br>'+AD[n];
+      h+='</p></div>';
+    }
+    if(curI)h+='<div class="sec '+(S.gender==="male"?"red":"blue")+'"><h4>'+(S.gender==="male"?'🔥 '+curI.fire:'💧 '+curI.state)+' — '+curI.type+'</h4><p>'+curI.ess+'</p></div>';
+    // Matrix 5x8
+    h+=expHTML('Матрица 5×8','var(--gold)','',false);
+    h+='<div style="overflow-x:auto;margin-bottom:10px"><table style="border-collapse:collapse;width:100%;min-width:380px"><thead><tr><td style="padding:4px;font-size:0.65rem;color:var(--dim)"></td>';
+    EL.forEach(function(e){h+='<td style="padding:4px;font-size:0.7rem;font-weight:700;color:'+e.color+';text-align:center">'+e.name+'</td>'});
+    h+='</tr></thead><tbody>';
+    LN.forEach(function(l){
+      h+='<tr><td style="padding:3px;font-size:0.6rem;color:var(--dim);font-weight:700">'+l.kg+'</td>';
+      EL.forEach(function(e,ei){
+        var a=ei*8+l.n;
+        var isMe=a===n;
+        h+='<td style="padding:3px;font-size:'+(isMe?'0.85rem':'0.7rem')+';font-weight:'+(isMe?'800':'400')+';color:'+(isMe?'#fff':a>n?'#444':'var(--dim)')+';background:'+(isMe?e.color:'transparent')+';border-radius:4px;text-align:center">'+a+'</td>';
+      });
+      h+='</tr>';
+    });
+    h+='</tbody></table></div>';
+  }
+  h+='<div class="nav"><button class="btn2" onclick="go(\'home\')">← Главная</button>';
+  if(n>=0&&n<=60&&S.gender)h+='<button class="btn" onclick="go(\'symptom\')">Далее →</button>';
+  h+='</div>';
+}
+
+else if(s==="symptom"){
+  h+='<h1>Что болит?</h1><div class="sub">Выберите сферу проблемы</div>';
+  EL.forEach(function(e){
+    h+='<div class="card'+(S.symptom===e.id?' style="border-color:'+e.color+'"':'')+'" onclick="S.symptom=\''+e.id+'\';render()"><h3 style="color:'+e.color+'">'+e.name+' — '+e.sphere+'</h3></div>';
+  });
+  h+='<div class="nav"><button class="btn2" onclick="go(\'age\')">←</button>';
+  if(S.symptom)h+='<button class="btn" onclick="go(\'column\')">Далее →</button>';
+  h+='</div>';
+}
+
+else if(s==="column"&&sEl){
+  h+='<h1>Колонка '+sEl.name+'</h1>';
+  if(dr)h+='<div class="sec" style="border-color:#ffd700"><h4 style="color:#ffd700">⬢ КОРЕНЬ — '+dr.rit+' ('+dr.age+')</h4><p>'+(S.gender==="male"?dr.fire:dr.state)+' — '+dr.type+'\n'+dr.root+'</p></div>';
+  var symCol=[];for(var i=0;i<8;i++)symCol.push(EL.indexOf(sEl)*8+i+1);
+  if(symCol.some(function(a){return a>n}))h+='<div class="sec purple"><h4>Часть возрастов — будущее</h4><p>Они показаны как навигация, не диагноз.</p></div>';
+  h+='<p style="color:var(--dim);font-size:0.82rem;margin-bottom:8px">Выберите резонирующие:</p>';
+  symCol.forEach(function(a){
+    var l=gL(a);var isD=dr&&a===dr.age;var isSel=S.sel[a];var isFut=a>n;
+    h+='<div class="sym-row" style="opacity:'+(isFut?0.5:1)+';border-color:'+(isD?'#ffd700':isSel?sEl.color:'rgba(255,255,255,0.05)')+'" onclick="S.sel['+a+']=!S.sel['+a+'];render()">';
+    h+='<div class="chk'+(isSel||isD?' on':'')+'"></div>';
+    h+='<span style="font-weight:800;color:'+(isD?'#ffd700':sEl.color)+'">'+a+'</span>';
+    h+='<span style="font-weight:700;color:var(--cream)">'+l.kg+'</span>';
+    h+='<span style="font-size:0.75rem;color:var(--dim)">'+l.ru+'</span>';
+    if(isD)h+='<span style="margin-left:auto;font-size:0.65rem;color:#ffd700">КОРЕНЬ</span>';
+    if(isFut&&!isD)h+='<span style="margin-left:auto;font-size:0.65rem;color:var(--plum)">БУДУЩЕЕ</span>';
+    h+='</div>';
+  });
+  h+='<div class="nav"><button class="btn2" onclick="go(\'symptom\')">←</button><button class="btn" onclick="go(\'culture\')">Культура →</button></div>';
+}
+
+else if(s==="culture"){
+  h+='<h1>Культурный код</h1>';
+  if(dr)h+=expHTML('⬢ '+dr.rit+' ('+dr.age+') — '+(S.gender==="male"?dr.fire:dr.state),'#ffd700','Суть: '+dr.ess+'\nИскажение: '+dr.dis+'\nКорень: '+dr.root+'\n\nОбряд: '+dr.ritD+'\n'+(dr.manas||'')+'\n\nКАК ПРОЙТИ:\n'+dr.how,true);
+  if(curI&&curI!==dr)h+=expHTML((S.gender==="male"?'🔥 '+curI.fire:'💧 '+curI.state)+' — '+curI.type+' ('+curI.age+')',S.gender==="male"?'#C41E3A':'#1B6B93','Суть: '+curI.ess+'\nОбряд: '+curI.ritD+'\n\nКак пройти:\n'+curI.how);
+
+  // Selected points interpretation
+  var LC={al:{1:"АРЗЫБА: кармический вход в тему денег. Первый опыт «я стою». ДЕЙСТВИЕ: запишите первое воспоминание о деньгах.",2:"ТЕҢДИК: баланс ресурса. Умели удерживать или тратили сразу? ДЕЙСТВИЕ: есть ли финансовая подушка? Начните откладывать.",3:"БАТА: родовые установки. «Мы бедные», «богатые — воры»? ДЕЙСТВИЕ: запишите 5 фраз о деньгах из семьи. Для каждой — решение.",4:"ЧЫЙЫР: магия денег. Приходили ниоткуда или исчезали? ДЕЙСТВИЕ: 3 ситуации, когда деньги появились/исчезли. Что общего?",5:"ТОСОР: борьба за ресурсы. Кредиты, долги. ДЕЙСТВИЕ: список долгов. План погашения. Одно действие на неделе.",6:"ЖАМБЫ: ключ к реализации. Чем хотели заниматься? Подменили чужим? ДЕЙСТВИЕ: чем хотели — и чем занимаетесь? Совпадает?",7:"ЧИЛДЕ: трансформация ресурсов. Потеря работы, успех. ДЕЙСТВИЕ: что изменилось финансово? Какой вывод актуален сейчас?",8:"ТААЖЫ: благословение. Приняли плоды или обесценили? ДЕЙСТВИЕ: 5 финансовых достижений. Обесценили ли?"},
+  man:{1:"Право на жизнь. ДЕЙСТВИЕ: узнайте историю рождения.",2:"Баланс тела. ДЕЙСТВИЕ: один ритуал для тела каждый день.",3:"Родовые болезни. ДЕЙСТВИЕ: карта болезней рода — 3 поколения.",4:"Тело-антенна. ДЕЙСТВИЕ: где зажато? Запишите.",5:"Воля сломлена? ДЕЙСТВИЕ: одно преодоление на неделе.",6:"Ключи тела. ДЕЙСТВИЕ: что телу нравится? Вернуть.",7:"Трансформация. ДЕЙСТВИЕ: что изменилось в теле?",8:"Тело — дар или враг? ДЕЙСТВИЕ: 5 благодарностей телу."},
+  as:{1:"Первый удар. ДЕЙСТВИЕ: первая эмоциональная травма.",2:"Эмоциональный баланс. ДЕЙСТВИЕ: где в отношениях нет баланса?",3:"Модели любви. ДЕЙСТВИЕ: отношения родителей — одним предложением.",4:"Непрожитый переход. ДЕЙСТВИЕ: какой переход не оформлен?",5:"Разрыв. ДЕЙСТВИЕ: с кем разорвана связь?",6:"Свой язык. ДЕЙСТВИЕ: как проявляете любовь? Как хотите получать?",7:"Срыв. ДЕЙСТВИЕ: последний кризис — чему научил?",8:"Зрелость чувств. ДЕЙСТВИЕ: в чём выросли эмоционально?"},
+  ar:{1:"Отречение или принятие. ДЕЙСТВИЕ: что знаете о роде?",2:"Принадлежность vs автономия. ДЕЙСТВИЕ: где зависимы? Где отрезаны?",3:"Родовые программы. ДЕЙСТВИЕ: 3 повторяющиеся истории.",4:"Невидимые процессы. ДЕЙСТВИЕ: что передалось неосознанно?",5:"Война с родом. ДЕЙСТВИЕ: с кем конфликт? Что за ним?",6:"Своё место. ДЕЙСТВИЕ: ваша роль в роду — ваша ли?",7:"Кризис с родителями. ДЕЙСТВИЕ: что непроговорено?",8:"Род как опора. ДЕЙСТВИЕ: за что благодарны роду?"},
+  om:{1:"Зов. ДЕЙСТВИЕ: когда впервые почувствовали «я для чего-то»?",2:"Быт vs смысл. ДЕЙСТВИЕ: сколько % на дело души? +10%.",3:"Родовой дар. ДЕЙСТВИЕ: был ли в роду похожий дар?",4:"Магия дара. ДЕЙСТВИЕ: когда дар проявился ярче?",5:"Обесценивание. ДЕЙСТВИЕ: кто сказал «несерьёзно»?",6:"Ключ. ДЕЙСТВИЕ: что бы делали без оглядки на деньги?",7:"Главная трансформация. ДЕЙСТВИЕ: что должно умереть чтобы дар ожил?",8:"Полнота. ДЕЙСТВИЕ: один шаг к предназначению — завтра."}};
+  var hasSel=false;
+  if(sEl&&LC[sEl.id]){
+    Object.keys(S.sel).forEach(function(k){if(S.sel[k]){hasSel=true}});
+    if(hasSel){
+      h+='<div style="font-size:0.95rem;font-weight:700;color:var(--cream);margin:14px 0 8px">Ваши выбранные точки — разбор</div>';
+      Object.keys(S.sel).forEach(function(k){
+        if(!S.sel[k])return;
+        var a=parseInt(k);var l=gL(a);
+        var ctx=LC[sEl.id][l.n]||'';
+        if(!ctx)return;
+        h+='<div class="sec" style="border-color:'+sEl.color+'"><h4 style="color:'+sEl.color+'">'+a+' / '+l.kg+' ('+l.ru+')</h4><p>'+ctx+'</p></div>';
+      });
+    }
+  }
+
+  h+=expHTML(S.gender==="male"?'Төрт от — Четыре огня':'Төрт суу → От Эне','var(--plum)',(S.gender==="male"?MF:FF).map(function(f,i){return (S.gender==="male"?f.fire:f.state)+' — '+f.type+' ('+f.age+'): '+f.ess+'\nОбряд: '+f.rit}).join('\n\n'));
+  if(S.symptom==="al")h+=expHTML('Финансовый поток','#1B6B93',S.gender==="male"?MAT.m:MAT.f);
+  h+='<div class="nav"><button class="btn2" onclick="go(\'column\')">←</button><button class="btn" onclick="go(\'bio\')">Биография →</button></div>';
+}
+
+else if(s==="bio"){
+  h+='<h1>Биография</h1><div class="sub">Запишите что вспоминается</div>';
+  var qs=[{k:"r",q:"Что помните о возрасте "+(dr?dr.age:"ключевом")+"?"},{k:"f",q:"Что было в семье в тот период?"},{k:"s",q:"Был ли сдвиг, потеря или перемена?"},{k:"m",q:S.symptom==="al"?(S.gender==="male"?"Какая была связь с мамой?":"Кто был первым значимым мужчиной?"):"Кто был ключевой фигурой?"},{k:"p",q:"Есть ли повторяющийся паттерн?"}];
+  qs.forEach(function(item){
+    h+='<div style="margin-bottom:12px"><label style="display:block;font-size:0.82rem;color:var(--cream);margin-bottom:4px">'+item.q+'</label>';
+    h+='<textarea rows="2" placeholder="..." style="width:100%;background:var(--card);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:8px 10px;color:var(--text);font-size:0.82rem;resize:vertical;font-family:inherit;outline:none" onchange="S.bio[\''+item.k+'\']=this.value">'+(S.bio[item.k]||'')+'</textarea></div>';
+  });
+  h+='<div class="nav"><button class="btn2" onclick="go(\'culture\')">←</button><button class="btn" onclick="go(\'result\')">Итог →</button></div>';
+}
+
+else if(s==="result"){
+  h+='<h1>Итоговый разбор</h1>';
+
+  // Summary cards
+  var cards=[];
+  if(n>=1&&n<=40)cards.push({l:"Точка",v:""+n,s:el.name+"/"+(ln?ln.kg:""),c:el.color});
+  if(sEl)cards.push({l:"Симптом",v:sEl.name,s:sEl.sphere.split(",")[0],c:sEl.color});
+  if(dr)cards.push({l:"Корень",v:dr.rit,s:""+dr.age,c:"#ffd700"});
+  if(curI)cards.push({l:S.gender==="male"?"Огонь":"Вода",v:S.gender==="male"?curI.fire:curI.state,s:curI.type,c:S.gender==="male"?"#C41E3A":"#1B6B93"});
+  if(cards.length){
+    h+='<div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap">';
+    cards.forEach(function(x){h+='<div style="flex:1 1 70px;background:var(--card);border-radius:10px;padding:10px 6px;text-align:center;border:1px solid '+x.c+'40"><div style="font-size:0.6rem;color:var(--dim);text-transform:uppercase">'+x.l+'</div><div style="font-size:1rem;font-weight:800;color:'+x.c+'">'+x.v+'</div><div style="font-size:0.6rem;color:var(--dim)">'+x.s+'</div></div>'});
+    h+='</div>';
+  }
+
+  if(dr){
+    h+='<div class="sec" style="border-color:#ffd700"><h4 style="color:#ffd700">🗝 Глубинная причина</h4><p>'+dr.rit+' ('+dr.age+'). '+dr.root+'</p></div>';
+    h+='<div class="sec green"><h4>✅ Конкретный план действий</h4><p>'+dr.how+'</p></div>';
+  }
+
+  // Future symptom recommendation
+  if(sEl){
+    var elIdx=EL.indexOf(sEl);
+    var symStart=elIdx*8+1;
+    if(symStart>n){
+      h+='<div class="sec purple"><h4>🔮 Раннее пробуждение</h4><p>Вы задумались о сфере «'+sEl.sphere+'» раньше, чем она активируется в матрице ('+symStart+'-'+(symStart+7)+'). Это редкий случай раннего осознания.\n\nЭто не проблема — это преимущество. Если вы начнёте готовиться сейчас, ваш путь в этой сфере будет выстроен более гармонично, чем у тех, кто столкнётся с ней неподготовленным.</p></div>';
+    }
+  }
+
+  if(S.symptom==="al")h+='<div class="sec blue"><h4>💡 Финансовый поток</h4><p>'+(S.gender==="male"?"Связь с матерью влияет на способность удерживать ресурс. Действие: Көөкөр → Уксар.":"Связь с первым мужчиной определяет финансовую самостоятельность. Действие: Теңдөө → Коокемер.")+'</p></div>';
+  h+='<div class="sec red"><h4>⚠ Риск</h4><p>Без прохождения посвящения проблема углубится. Решение — конкретное действие, не стратегия.</p></div>';
+
+  // Selected points in result
+  var selKeys=Object.keys(S.sel).filter(function(k){return S.sel[k]});
+  if(selKeys.length){
+    h+='<div class="sec"><h4>📌 Выбранные точки</h4><p>';
+    selKeys.forEach(function(k){var a=parseInt(k);var l=gL(a);h+=a+' / '+l.kg+' ('+l.ru+')\n'});
+    h+='</p></div>';
+  }
+
+  // Bio notes
+  var hasB=Object.values(S.bio).some(function(v){return v});
+  if(hasB){
+    h+='<div class="sec"><h4>📝 Заметки</h4><p>';
+    Object.values(S.bio).forEach(function(v){if(v)h+=v+'\n'});
+    h+='</p></div>';
+  }
+
+  // Document display
+  h+='<div class="nav">';
+  h+='<button class="btn3" onclick="go(\'practice\')">Путь действия</button>';
+  h+='<button class="btn3" onclick="go(\'document\')">📋 Документ</button>';
+  h+='<button class="btn2" onclick="go(\'roots\')">Корни пути</button>';
+  h+='<button class="btn" onclick="reset()">Заново</button>';
+  h+='</div>';
+  h+='<div class="nav"><button class="btn2" onclick="go(\'bio\')">← Назад</button></div>';
+}
+
+else if(s==="practice"){
+  h+='<h1>Путь действия</h1>';
+  if(sEl)h+='<div class="sub">'+sEl.name+' — '+sEl.sphere+'</div>';
+  if(S.symptom==="al"){
+    h+=expHTML('Этап 1. Археология установок (дни 1–3)','#1B6B93','(1) Запишите: «Что слышал(а) о деньгах в детстве». Минимум 10 фраз.\n(2) Для каждой: кто сказал и что чувствовали.\n(3) Финансовая карта рода — 3 поколения: как зарабатывал, тратил, терял.\n(4) Одним предложением: «Паттерн рода — ___».',true);
+    h+=expHTML('Этап 2. Тело и деньги (дни 3–4)','#8B6914','(1) Суммы вслух: 10к → 50к → 100к → 500к. Где тело среагировало?\n(2) Прочитайте установки вслух — наблюдайте тело.\n(3) Руки на место реакции. 3 минуты.\n(4) Назовите сумму, которую хотите. Где тело протестует?');
+    h+=expHTML('Этап 3. Микро-проект «Своя форма» (дни 5–7)','#C41E3A','(1) 5 вещей, которые умеете и нравятся.\n(2) Одну — сделайте НЕ для денег. Для формы.\n(3) Масштабируйте: нед.1 подарить → нед.2 предложить → нед.3 цена → нед.4 оплата.');
+    h+=expHTML('Этап 4. Глубокое исследование (2 нед.)','#2D6A4F','(1) Поговорите с 2–3 родственниками о деньгах в роду.\n(2) Летопись — таблица по поколениям.\n(3) 3 ключевые установки. Помогает/мешает?\n(4) «Финансовый завет» — одно решение. 21 день.');
+  } else if(S.symptom==="man"){
+    h+=expHTML('Карта тела','#8B6914','(1) Контур тела цветом: зелёный=сила, красный=боль, серый=пусто.\n(2) Для красных: с какого возраста?\n(3) Руки на самое болезненное. 3 минуты.\n(4) Что тело сказало?',true);
+    h+=expHTML('40 шагов','#6B21A8','(1) Босиком. 40 медленных шагов — по одному на год.\n(2) Где запнётесь — заметьте.\n(3) На ключевом возрасте — стоп. 30 секунд.');
+  } else if(S.symptom==="as"){
+    h+=expHTML('Модели любви','#C41E3A','(1) 3 пары рода: для каждой — кто сильнее? контроль? жертва?\n(2) Фразы о любви из детства. Минимум 7.\n(3) Паттерн? Мои или унаследованные?',true);
+    h+=expHTML('Круг безопасности','#6B21A8','(1) Найдите безопасного человека.\n(2) Расскажите самое болезненное.\n(3) Позвольте быть услышанным.');
+  } else if(S.symptom==="ar"){
+    h+=expHTML('Родовая карта','#2D6A4F','(1) Схема рода — 3 поколения.\n(2) Красным — кризисы. Зелёным — ресурсы.\n(3) Что повторяется?\n(4) «Паттерн рода — ___».',true);
+    h+=expHTML('Благодарность роду','#6B21A8','(1) Свеча + фото рода.\n(2) Дар из рода — примите.\n(3) Что отпускаете — назовите.\n(4) Два списка: несу / ставлю на землю.');
+  } else if(S.symptom==="om"){
+    h+=expHTML('Сигналы дара','#6B21A8','(1) 3 момента, когда забыли о времени.\n(2) Что общего? Глагол.\n(3) Где используете? Где подавляете?',true);
+    h+=expHTML('Признание дара','#2D6A4F','(1) На листе: «Мой дар — ___. Даю место».\n(2) Один шаг сегодня.\n(3) 21 день.');
+  }
+  if(!S.symptom)h+='<p style="color:var(--dim)">Выберите симптом для получения практик.</p>';
+  h+='<div class="nav"><button class="btn2" onclick="go(\'result\')">← Итог</button><button class="btn" onclick="reset()">Заново</button></div>';
+}
+
+else if(s==="document"){
+  h+='<h1>📋 Документ навигации</h1><div class="sub">Скопируйте или сфотографируйте</div>';
+  var t="══ АЛМАНБЕТТИН СЫРЫ ══\\nЛИЧНАЯ НАВИГАЦИЯ\\n\\n";
+  t+="Возраст: "+n+" | "+(S.gender==="male"?"Мужчина":"Женщина")+"\\n";
+  if(n>=1&&n<=40)t+="Координата: "+n+"/"+el.name+"/"+(ln?ln.kg:"")+"\\n";
+  if(curI)t+="\\n"+(S.gender==="male"?"Огонь: "+curI.fire:"Вода: "+curI.state)+" — "+curI.type+"\\n"+curI.ess+"\\n";
+  if(sEl)t+="\\nСимптом: "+sEl.name+" — "+sEl.sphere+"\\n";
+  if(dr)t+="\\nГЛУБИННАЯ ТОЧКА: "+dr.rit+"("+dr.age+")\\n"+dr.root+"\\n\\nОбряд: "+dr.ritD+"\\n\\nКАК ПРОЙТИ:\\n"+dr.how+"\\n";
+  var selK=Object.keys(S.sel).filter(function(k){return S.sel[k]});
+  if(selK.length){t+="\\nТОЧКИ:\\n";selK.forEach(function(k){var l=gL(parseInt(k));t+=k+"/"+l.kg+"\\n"})}
+  if(S.symptom==="al")t+="\\nФИНАНСОВЫЙ ПОТОК:\\n"+(S.gender==="male"?MAT.m:MAT.f)+"\\n";
+  var hasB=Object.values(S.bio).some(function(v){return v});
+  if(hasB){t+="\\nЗАМЕТКИ:\\n";Object.values(S.bio).forEach(function(v){if(v)t+=v+"\\n"})}
+  t+="\\n══════════════\\nАлманбеттин сыры\\n";
+  h+='<div style="background:var(--bg2);border-radius:10px;padding:14px;border:1px solid var(--gold);max-height:500px;overflow:auto;margin-bottom:14px"><pre style="font-size:0.78rem;color:var(--cream);line-height:1.7;white-space:pre-wrap;font-family:inherit;user-select:all">'+t.replace(/\\n/g,'\n')+'</pre></div>';
+  h+='<div class="nav"><button class="btn" onclick="var el=document.querySelector(\'pre\');var r=document.createRange();r.selectNodeContents(el);var s=window.getSelection();s.removeAllRanges();s.addRange(r);try{document.execCommand(\'copy\');alert(\'Скопировано!\')}catch(e){alert(\'Выделите текст и нажмите Ctrl+C\')}">Скопировать всё</button><button class="btn2" onclick="go(\'result\')">← Итог</button></div>';
+}
+
+else if(s==="pregnancy"){
+  h+='<h1>🌱 Беременность</h1><div class="sub">Путеводитель 9 месяцев</div>';
+  
+  h+='<div class="sec"><p>Зачатие — момент программирования будущей жизни\nВ традиционном понимании соитие, зачатие, беременность и рождение не были разрозненными событиями. Это был единый сакральный процесс.\nЗачатие понималось как порог, где жизнь получает первое направление.\nЭто не просто соединение клеток. Это момент, когда в новую судьбу входит намерение, состояние и родовая память.\nЧерез мать в ребёнка входит то, что можно назвать кодом жизни:\nритм, ощущение мира, состояние тела, качество принятия.\nЧерез отца входит код происхождения:\nлиния рода, сила имени, структура принадлежности.\nПоэтический язык традиции говорит об этом очень красиво:\nматеринская клетка несёт судьбу жизни  (кыргыз тагдыры), отцовская — судьбу происхождения  (улут тагдыры) .\nСовременный человек может читать это как символический язык, но его глубина удивительно точна.\nТо, в каком состоянии находятся родители, насколько они в доверии или тревоге, в согласии или внутренней войне, насколько зрелым был их союз, — всё это образует первую атмосферу, в которую приходит будущая жизнь.\nИменно поэтому зачатие в традиции не было нейтральным бытовым действием.\nОно рассматривалось как момент передачи намерения.\nБеременность — девять месяцев собирания человека\nБеременность в этой системе понимается как первый большой путь человека.\nОн ещё не родился, но уже проходит этапы формирования.\nОчень красивый и сильный образ этой методологии — человек как радуга.\nОн собирается постепенно, проходя через разные цвета, качества и уровни.\nСначала — семь основных потоков жизни. Затем — белый и чёрный как завершающие тона полноты.\nТак в течение девяти месяцев формируется не только тело ребёнка, но и его первая связь с миром.</p></div>';
+  h+=expHTML('Месяц 1 (Красный) — Память предков','#C41E3A','Первый месяц — Род\nЭто красный слой жизни, связанный с правом быть.\nВ этот период особенно важна связь с семью предками. Человек ещё только входит в мир, и первый вопрос его судьбы звучит так: есть ли у меня корень.\n\nЧТО ДЕЛАТЬ: Зажигайте арчу для очищения пространства. Каждый день вспоминайте и записывайте имена предков — до 7 поколений. Молитвы и благословения за будущего ребёнка.');
+  h+=expHTML('Месяц 2 (Оранжевый) — Жизнь','#E67E22','Второй месяц — Жизнь\nОранжевый слой. Здесь появляется образ семени.\n\nЧТО ДЕЛАТЬ: Посадите семена цветов в горшок — наблюдайте рост. Это зеркало состояния ребёнка. Забота, нежность, защита, отсутствие страха. Это время, когда будущая жизнь просит: сохрани меня.');
+  h+=expHTML('Месяц 3 (Жёлтый) — Достаток','#D4AC0D','Третий месяц — Достаток\nЖёлтый слой. Вокруг ребёнка собирается идея благополучия.\nОтец мужа дарит золото — не украшение, а символ: в эту жизнь ты входишь не в дефицит, а в поле заботы.\n\nЧТО ДЕЛАТЬ: Принять дар с благодарностью. Окружение создаёт благоприятную атмосферу. Избегать конфликтов и негатива. Он впитывает не слова, а общий настрой среды.');
+  h+=expHTML('Месяц 4 (Зелёный) — Имя','#2D6A4F','Четвёртый месяц — Имя\nЗелёный слой. Время выбора имени и судьбы.\nДва имени: духовное (от рода жены, остаётся тайной) и физическое (от рода мужа, известно миру).\n\nЧТО ДЕЛАТЬ: Оба рода участвуют в выборе. Духовное имя — в тишине, не объявляется. Физическое — с осознанием, что имя = код жизни.');
+  h+=expHTML('Месяц 5 (Голубой) — Сохранение','#1B6B93','Пятый месяц — Сохранение\nГолубой слой. Обряд сохранения через курут и сүзмө.\nВ человеке встречаются два рода, два поля влияния. На этом рубеже важно, чтобы жизнь ребёнка не стала ареной бессознательной борьбы предков.\n\nЧТО ДЕЛАТЬ: Обряд катания курут. Сүзмө — отделение сыворотки — символ сохранения ребёнка. Коррекция наследственности.');
+  h+=expHTML('Месяц 6 (Синий) — Тамга рода','#2B4C7E','Шестой месяц — Тамга рода\nСиний слой. У каждого рода своя тамга — космическое послание предков.\n\nЧТО ДЕЛАТЬ: Узнать тамгу своего рода. Вышить на мешочке для киндик-тумар. Это идентификация души ребёнка. Тамга — не просто знак семьи, а ответ на вопрос: откуда я.');
+  h+=expHTML('Месяц 7 (Фиолетовый) — Дыхание','#6B21A8','Седьмой месяц — Дыхание жизни\nФиолетовый слой. Связан с хрупкостью дыхания, правом сделать вдох.\nГорный хрусталь символизирует замерший выдох дракона (Каатын: каа=дракон, тын=дыхание).\n\nЧТО ДЕЛАТЬ: Горный хрусталь как талисман. Беречь силы. Предотвращение преждевременных родов. Готовиться к дыханию — первому вдоху жизни.');
+  h+=expHTML('Месяц 8 (Белый) — Материнство','#e8dcc8','Восьмой месяц — Подготовка к материнству\nБелый слой. Женщина входит в будущую роль матери.\nВыбор Акак эне — духовного родителя ребёнка.\n\nЧТО ДЕЛАТЬ: Выбрать Акак эне — женщину, которая будет духовным ориентиром. Очистить жемчуг, благословлённый мужем. Белый — собранность перед великим переходом.');
+  h+=expHTML('Месяц 9 (Чёрный) — Порог рождения','#555','Девятый месяц — Порог рождения\nЧёрный слой. Момент великой тайны.\nЧёрный — не мрак, а глубина, материнская ночь, неизвестность.\nС каждой схваткой женщина отпускает часть себя. В тьме звучит первый крик новой жизни.\n\nРождение — перерождение: конец одной главы и начало другой.\nПуповина сохраняется в киндик-тумар — связь с душой ребёнка. Хранить в материнском сундуке всю жизнь.\n\nЧтобы войти в свет, нужно пройти через тьму.');
+  h+='<div class="nav"><button class="btn2" onclick="go(\'home\')">← Главная</button></div>';
+}
+
+else if(s==="roots"){
+  h+='<h1>📖 Корни пути</h1><div class="sub">Жолдун тамыры — живая карта обрядов перехода</div>';
+  h+='<div class="sec"><p>В основе нашей системы лежит древнее знание о том, что жизнь человека развивается не хаотично, а через переходы.\nЕсть годы, когда человек просто растёт. А есть годы, когда он становится другим.\nМеняется тело. Меняется чувствительность. Меняется способ жить.\n\nОбряды сопровождали человека в моменты, когда прежнее завершалось, а новое рождалось. Обряд помогал не потеряться. Он делал главное: помогал пройти порог осознанно.\n\nЦепочка жизненных врат:\nсоюз → зачатие → беременность → рождение → 40 дней → первый шаг → мужские и женские переходы → циклы мүчөл.</p></div>';
+  h+=expHTML('НИКЕ — Союз у родника','var(--ember)','Нике — союз как вход в общую спираль жизни\nВ кыргызской традиции союз мужчины и женщины понимался как событие, которое начинается в самой ткани мироздания и точно не для общества.\nПоэтому свидетелем нике выступали не люди, а природа.\nОбряд совершался у родника.\nЭто очень точный образ. Родник — источник воды. Это место, где земля даёт жизнь наружу. Союз тоже понимался как источник, из которого потом рождается новый путь, новый дом, новое потомство.\nМужчина приходил свататься с көөкөр — сосудом силы рода.\nЭто означало: он пришёл не пустым. Он пришёл с душой, собранной в форму.\nЖенщина знала: перед ней человек, который пришёл с внутренним намерением.\nЗатем совершалось тихое, почти неподвижное действие.\nЖенщина медленно снимала платок. Мужчина держал калпак. Женщина протягивала жоолук. Мужчина оборачивал жоолук вокруг калпака. Они не касались друг друга и не нуждались в бурной демонстрации. Они склоняли головы. И в этой тишине союз закреплялся.\nВ этом обряде уже заложена удивительная философия отношений.\nКалпак — это мужская высота, ответственность, собранность огня.\nЖоолук — это женская текучесть, мудрость, мягкая регуляция воды.\nКогда жоолук оборачивают поверх калпака, возникает формула баланса:\nогонь поднимается и получает направление,\nвода удерживает и даёт меру,\nа энергия мужчины и женщины перестаёт спорить за власть и начинает слышать друг друга.\nСовременным языком нике можно назвать входом в зрелый союз.\nЭто момент, когда два автономных человека выбирают идти дальше не из страха остаться одними и не из желания понравиться миру, а из понимания: вместе они создают более высокий порядок жизни.\nНике — это про «мы». Это про качество будущего, которое возникает из их согласия.');
+  h+=expHTML('ЗАЧАТИЕ — Момент программирования','#E67E22','Зачатие — момент программирования будущей жизни\nВ традиционном понимании соитие, зачатие, беременность и рождение не были разрозненными событиями. Это был единый сакральный процесс.\nЗачатие понималось как порог, где жизнь получает первое направление.\nЭто не просто соединение клеток. Это момент, когда в новую судьбу входит намерение, состояние и родовая память.\nЧерез мать в ребёнка входит то, что можно назвать кодом жизни:\nритм, ощущение мира, состояние тела, качество принятия.\nЧерез отца входит код происхождения:\nлиния рода, сила имени, структура принадлежности.\nПоэтический язык традиции говорит об этом очень красиво:\nматеринская клетка несёт судьбу жизни  (кыргыз тагдыры), отцовская — судьбу происхождения  (улут тагдыры) .\nСовременный человек может читать это как символический язык, но его глубина удивительно точна.\nТо, в каком состоянии находятся родители, насколько они в доверии или тревоге, в согласии или внутренней войне, насколько зрелым был их союз, — всё это образует первую атмосферу, в которую приходит будущая жизнь.\nИменно поэтому зачатие в традиции не было нейтральным бытовым действием.\nОно рассматривалось как момент передачи намерения.\nБеременность — девять месяцев собирания человека\nБеременность в этой системе понимается как первый большой путь человека.\nОн ещё не родился, но уже проходит этапы формирования.\nОчень красивый и сильный образ этой методологии — человек как радуга.\nОн собирается постепенно, проходя через разные цвета, качества и уровни.\nСначала — семь основных потоков жизни. Затем — белый и чёрный как завершающие тона полноты.\nТак в течение девяти месяцев формируется не только тело ребёнка, но и его первая связь с миром.');
+  h+=expHTML('ТОН — 40 дней, вхождение души в тело','var(--sage)','Первые 40 дней — как душа входит в тело\nПосле рождения начинается сакральное время вхождения.\nПервые сорок дней — это момент, когда человек уже родился, но ещё окончательно не закрепился в мире.\nВ традиции это был период особой защиты, особой тишины и особого слова.\nИменно в эти дни мать становится проводником силы для ребёнка.\nОбряд 40 чоро\nКаждый день мать произносит имя одного из чоро.\nНо смысл обряда не в простом перечислении.\nИмя чоро — это сила дня.\nЧилтен — это дух-защитник этой силы.\nСакральные слова матери — это акт передачи силы.\nТак возникает триада:\nчоро — потенциал,\nчилтен — сопровождение,\nэне — проводник.\nЭто делает 40 дней  это период формирования личности.\nДля мальчика 40 чоро становятся основой будущего мужского пути.\nВ него вшиваются слово, достоинство, стойкость, защита, дальновидение, верность, миротворчество, способность нести силу без разрушения.\nДля девочки 40 чоро тоже остаются фундаментом.\nОни дают ей не «мужскую модель», а универсальную духовную сорочку — основу, на которую позже лягут состояния женской глубины.\nОчень красивая формула:\n40 чоро — это сорочка духа, а 12 Умай — это платье души.\nОдна защищает.\nДругая раскрывает.\nВместе они собирают человека.\nЗавершение 40 дней\nНа 41-й день собирается сорочка из 40 лоскутков силы.\nПроводится обряд 40 ложек воды: 20 ложек холодной воды и 20 ложек горячей.\nЭто действие соединяет полюса жизни:\nжар и прохладу,\nдень и ночь,\nдух и тело,\nмужское и женское.\nРебёнка окропляют или омывают, надевают сорочку, произносят слова благодарности.\nЭто момент, когда дух окончательно начинает жить в теле, а голос матери остаётся в сердце ребёнка как первая настройка любви.');
+  h+=expHTML('ТУШОО ТОЙ — 1 год, обряд первого пути','#8B6914','Один год — обряд первого пути\nОдин год — это возраст, когда ребёнок начинает идти.\nНо в традиции важно было не только то, что он пойдёт ногами. Важнее было, как он войдёт в свой путь.\nПоэтому проводился тушоо той.\nРебёнку перевязывали ноги ала жип — особой нитью, которую готовила не любая женщина, а та, что сумела собрать в себе равновесие стихий.\nЭто очень важный момент.\nСчиталось, что путь ребёнку должен открывать человек, в котором уже есть мера, внутренняя опора, телесная собранность, зрелые чувства, связь с родом и ясное сознание.\nСовременным языком можно сказать так: ала жип готовит женщина с устойчивой психикой, живым телом и внутренней цельностью.\nПотому что ребёнок чувствует не слова взрослого, а его состояние.\nПотом ребёнок выходит на белую дорожку.\nЭто образ чистого начала.\nСначала снимаются путы, затем появляется право выбора.\nВ новой версии обряда особенно важен переход от «резать» к «развязывать».\nРаньше путь человека был встроен в род и уклад. Препятствие воспринималось как внешний узел. Его можно было перерезать.\nСегодня всё иначе. Человек живёт в мире множества ролей, ожиданий и чужих сценариев. Поэтому современный узел — это чаще внутренний страх, путаница, чужая программа. Если просто разрезать его, человек может остаться без опоры.\nПоэтому теперь важнее распутать, а не отсечь.\nПосле этого ребёнок подходит к пяти оймок и делает первый выбор.\nПять оймок\nМан — путь через тело, здоровье, движение, ремесло, устойчивость.\nАс — путь через чувства, эмпатию, творчество, связь.\nАл — путь через дело, инициативу, реализацию, ответственность.\nАр — путь через род, принадлежность, опору, преемственность.\nОм — путь через дар, смысл, внутреннее призвание.\nЭтот выбор показывает, с какого входа ему легче начать жизнь.\nГлавный смысл обряда года — вернуть ребёнку право идти своей дорогой.');
+  h+=expHTML('КӨӨКӨР — 9 лет, сосуд силы рода','var(--ember)','Девять лет, мальчик — Көөкөр, сосуд силы рода\nДевять лет — первый большой мужской переход.\nДо этого возраста мальчика в основном держит материнская линия: её тепло, забота, тревога, любовь, защита. Эта связь необходима. Но если она остаётся слишком плотной, мальчик взрослеет телом, а внутренне всё ещё ждёт, что кто-то решит за него.\nИменно поэтому в девять лет совершался обряд Көөкөр.\nКөөкөр — это сосуд силы рода.\nОн создавался мужчиной, но не передавался мальчику напрямую. Между ними всегда стояла женщина особого статуса — не мать, а зрелая женщина, в которой жизнь уже прошла свой круг и стала знанием. Это очень точная логика.\nМужская сила требует формы. Но прямое давление способно вызвать внутренний слом. Поэтому в системе всегда присутствовал принцип баланса.\nТак совершался переход:\nлюбовь к матери оставалась,\nно направление жизни менялось.\nМальчик впервые чувствовал: у меня есть собственная сила, за моей спиной стоит род, я вхожу в мужскую линию.\nСовременный смысл этого обряда огромен.\nИменно этого перехода часто не хватает мужчинам, которые потом ищут свою опору в признании женщин, в доказательствах, в зависимостях, в эмоциональных обходных путях.\nКөөкөр — это первый мужской сосуд достоинства.');
+  h+=expHTML('ТЕҢДӨӨ — 12 лет, собирание стихий','var(--frost)','Двенадцать лет, девочка — Теңдөө, собирание стихий\nДвенадцать лет — первый большой женский переход.\nЭто возраст, когда девочка перестаёт быть просто ребёнком, но ещё не знает, как быть женщиной.\nНачинается гормональная перестройка.\nМеняется чувствительность.\nТело становится более открытым к будущему.\nПоявляется новая эмоциональная глубина.\nЕсли в этот момент нет сопровождения, девочка входит в женское состояние через тревогу, стыд, неясность или сопротивление.\nИменно поэтому проводился обряд Теңдөө — обряд слияния стихий.\nОн начинался с очищения пространства и благословений разных женщин-наставниц.\nКаждая из них вносила свой слой: защиту, воду, благословение, предмет силы, сопровождение в жизненный путь.\nЗатем проводился обряд мүчөл жаш: шерстяными красными нитями измерялись 12 частей тела, после чего нити обрезались и сжигались в огне. Это означало завершение первого большого цикла и вход в новую форму жизни.\nПосле этого пять женщин садились вокруг девочки и начинали церемонию слияния стихий. Они заплетали пять косичек, а затем соединяли их в одну косу, вплетая накосник. Это очень мощный символ:\nженщина — это пространство стихий, и её зрелость начинается тогда, когда внутри появляется не хаос, а согласие.\nСовременным языком этот обряд можно описать так:\nЗемля — тело и безопасность\nОгонь — эмоции и границы\nВода — чувства и способность к связи\nДрево — род и внутренний смысл\nЭфир — сознание и тишина\nОбряд помогает её системам договориться между собой.');
+  h+=expHTML('АЙАР — 17 лет, ось женского центра','var(--frost)','Семнадцать лет, девушка — Айар, ось женского центра\nСемнадцать лет — очень тонкий и красивый возраст.\nЭто уже не детство, но ещё не зрелая женская полнота.\nЭто период, когда девичья энергия перестаёт быть рассеянной и начинает искать внутреннюю ось.\nИменно здесь раскрывается смысл Коокемер.\nКоокемер — это сакральный женский пояс.\nВ традиции он обозначал не просто украшение и не просто часть одежды. Он фиксировал изменение внутреннего состояния женщины.\nЧерез образ Каныкей эта логика становится особенно понятной.\nКоокемер — это не про подчинение, а про внутренний центр.\nЖенщина надевает пояс в момент, когда её энергия перестаёт быть только поиском и начинает собираться в способность удерживать.\nУдерживать союз.\nУдерживать себя.\nУдерживать смысл.\nУдерживать дом.\nУдерживать достоинство.\nСовременная психология называет это формированием устойчивого Я.\nЕсли внутренний центр не собран, женщина может потеряться в любви, в тревожной привязанности, в ожиданиях, в стремлении быть нужной ценой собственной цельности.\nКоокемер телесно обозначает обратное:\nя могу быть в союзе и при этом сохранять себя.\nСемнадцать лет — возраст, когда девочке-девушке особенно важно почувствовать эту ось ещё до того, как мир начнёт требовать от неё роли, которых она внутренне не успела прожить.');
+  h+=expHTML('УКСАР — 18 лет, пояс силы','var(--ember)','Восемнадцать лет, юноша — Уксар, пояс силы\nВосемнадцать лет — возраст, когда мужской огонь уже поднялся.\nЭнергия есть. Сила есть. Воля просыпается. Но если эта энергия не получает формы, она начинает расходоваться в хаос, конфликт, зависимость, демонстрацию и разрушение.\nПоэтому в восемнадцать лет проводился обряд Уксар.\nУксар — это плетёный пояс из 49 нитей.\nСначала нити подготавливались заранее. Каждая имела длину, равную мере человеческого шага: выйти в мир и вернуться к себе, сохранив ось.\nЗатем семь нитей собирались в семёрки, а семёрки — в полноту 49.\nЭта цифра очень символична.\nСорок девять — это знак собранной полноты силы.\nОбряд плетения происходил прямо на теле юноши. Это принципиально важно.\nСила не навязывалась извне. Она собиралась в теле, чтобы стать телесной памятью, а не просто назиданием.\nПояс плели женщины. Это тоже точный культурный знак.\nОни выступали не как управляющая сила, а как символ среды, жизни и формы, которая помогает мужскому огню не разрушать самого себя.\nСовременным языком Уксар можно назвать точкой, где юноша впервые получает разрешение сказать себе:\nтеперь я отвечаю за свою силу.');
+  h+=expHTML('БУЛАК — 25 лет, возраст источника','var(--frost)','Двадцать пять лет, женщина — Булак, возраст источника\nДвадцать пять лет — один из самых красивых женских возрастов.\nЭто время, когда женская природа способна раскрыться уже как источник.\nЕсли в 12 лет женщина собирает стихии,\nв 17 — находит ось,\nто в 25 она начинает по-настоящему излучать и наполнять.\nЭто возраст, когда женщина может реализовать свои стихии в жизни:\nв любви,\nв творчестве,\nв материнстве,\nв деле,\nв поддержке,\nв внутреннем достоинстве,\nв собственной форме пути.\nБулак — это не просто вода.\nЭто живая вода, которая уже не ищет, чем наполниться, а сама становится наполнением.\nВ этом возрасте особенно виден важный сдвиг: женщина перестаёт быть только той, кто чувствует, и становится той, кто даёт жизнь пространству вокруг себя.');
+  h+=expHTML('ӨРТ — 27 лет, испытание огня','var(--ember)','Двадцать семь лет, мужчина — испытание огня\nДвадцать семь — возраст мужского огненного перелома.\nЭто время, когда мужчина уже не юноша, но ещё не зрелое солнце.\nВ этом возрасте его сила проходит испытание пределом.\nПоявляются кризисы, перегрев, давление, столкновение с реальностью, борьба эго, разрушение прежних иллюзий.\nМужчина может почувствовать, что всё, что он строил, проверяется на прочность.\nИменно поэтому в вашей системе возраст 27 связан с образом Өрт — пожара.\nПожар отличается от просто огня тем, что он либо очищает пространство, либо уничтожает его.\nТак и мужчина в этом возрасте:\nлибо проходит кризис и становится глубже,\nлибо начинает воевать с миром и сжигает себя изнутри.\nПоэтому здесь особенно важен принцип Ак жол — светлого пути.\nЭто способность удержать меру, признать ошибки, не разрушить близких, не спутать силу с агрессией и перевести внутренний пожар в направление.');
+  h+=expHTML('КҮН-АТА — 36 лет, зрелость слова','var(--gold)','Тридцать шесть лет, мужчина — Күн, зрелость слова\nТридцать шесть — это возраст, когда мужчина должен стать осью.\nК этому времени он уже собрал последствия своих выборов.\nОн знает, что значит потерять, что значит пройти давление, что значит удержать или разрушить.\nЕсли предыдущие этапы прожиты с осознанием, в 36 он перестаёт быть вспышкой и становится светом.\nПоэтому эта ступень называется Күн — солнце.\nСолнце не суетится.\nОно не доказывает свою силу.\nОно светит, и вокруг него выстраивается порядок.\nНа этом уровне в мужской путь входит символ Тон — слово, к которому прилагается жизнь.\nЭто уже не обещание на эмоциях.\nЭто слово, которое человек готов нести как судьбу.\nТридцать шесть — возраст, когда мужчина либо действительно входит в зрелость, либо обнаруживает, что внешне он взрослый, а внутренне всё ещё живёт как юноша.\nПоэтому этот возраст особенно важен в методологии игры: он показывает, произошёл ли у человека переход от силы к свету.');
+  h+=expHTML('ОТ ЭНЕ — 52 года, возвращение природы','var(--plum)','Пятьдесят два года, женщина — От Эне, возвращение глубинной природы\nПятьдесят два — особый женский возраст.\nОн связан не с потерей, а с возвращением.\nК этому времени женщина проходит множество ролей.\nОна может быть дочерью, женой, матерью, хранительницей, труженицей, опорой для других. Но за всеми этими ролями всегда есть вопрос:\nгде моя настоящая природа?\nИменно здесь раскрывается образ От Эне.\nВажно понять его очень точно.\nЖенщина по природе — вода.\nНо её высшая ступень — не отказ от воды и не превращение в «огонь вместо воды». Это вода, которая обрела способность зажигать очаг.\nОна умеет согревать,\nвынашивать,\nдержать центр,\nсобирать дом,\nдавать продолжение,\nсохранять родовое тепло.\nПоэтому логика женского пути звучит так:\nШам — первый свет\nАйар — прозрачность и тонкость\nБулак — источник\nОт Эне — вода, ставшая очагом\nОчень красивая формула этой системы:\nМужчина — огонь, который становится солнцем.\nЖенщина — вода, которая становится очагом.\nОдин светит миру.\nДругая греет мир изнутри.');
+  h+=expHTML('12 МҮЧӨЛ — Обряд завершения цикла','var(--gold)','12 МҮЧӨЛ — ОБРЯД ЗАВЕРШЕНИЯ ЦИКЛА И ВХОДА В НОВЫЙ ПЕРИОД\nВ кыргызской традиции каждые 12 лет жизни человека сопровождались особым переходным обрядом — мүчөл.\nЭто был не просто возрастной рубеж, а момент завершения одного жизненного цикла и входа в следующий.\nСчиталось, что за 12 лет человек проходит целый круг опыта: в его жизни собираются радости и потери, рост и испытания, удача и тяжесть.\nПоэтому на пороге нового периода важно было завершить прожитый цикл, оставить в прошлом всё лишнее и открыть путь в будущее.\nИменно для этого совершался обряд обрезания 12 нитей.\nНити символизировали прожитый период, накопленные связи, состояния, события и следы прошлого.\nИх обрезали для того, чтобы человек не входил в новый цикл со старой тяжестью, со старыми ошибками или с застывшей формой прошлого опыта.\nДаже если прожитый период был благополучным, обряд всё равно проводился.\nПотому что смысл заключался не только в отсечении плохого, но и в обновлении жизни.\nХорошее должно было стать опорой и мудростью, а не удерживать человека в старом времени.\nПлохое же оставляли позади, чтобы не переносить его в новую судьбу.\nТаким образом, 12 мүчөл — это врата в новое пространство.\nЭто точка обнуления, очищения и внутреннего рождения.\nПройти через ноль означало измениться, перейти в новый возраст уже другим человеком — с новым взглядом, новой мерой и новыми ценностями.\nПеред обрядом проводилось суточное очищение.\nЭто мог быть пост, водное или более мягкое очищение, уборка дома, молитва, паломничество, внутренняя тишина и настройка.\nСам обряд совершался на рассвете, в нечётный лунный день, когда обрезались 12 нитей и человек символически завершал старый цикл.\nЦиклы 12 мүчөл\nКаждый 12-летний рубеж понимался как особый этап движения жизни.\nЭто не просто смена возраста, а смена внутренней оси, задач и глубины человека.\nЦикл прецессии — 12–13 лет\nДвижение. Красные нити.\nЭто первый большой переход, когда человек начинает выходить из родительского поля и входить в собственную траекторию.\nДо этого возраста основа жизни закладывается семьёй, воспитанием и средой.\nПосле 12 лет начинает включаться личная судьба: Своё “я”, свой выбор, свой характер, своё направление.\nЭтот цикл называется прецессией, потому что в нём происходит первое смещение внутренней оси.\nЖизнь начинает двигать человека в сторону его собственного пути.\nКрасные нити символизируют импульс, кровь, силу начала и первый толчок вперёд.\nЦикл эволюции — 24–25 лет\nРост. Оранжевые нити.\nЭто возраст раскрытия и расширения.\nЧеловек выходит в мир, ищет своё место, строит дело, отношения, направление, начинает проявлять себя в социуме.\nЭтот цикл называется эволюцией, потому что в нём заложенное ранее начинает раскрываться в форме жизни.\nЧеловек уже не просто движется, а растёт, проявляется, разворачивает свой потенциал.\nОранжевые нити символизируют жизненность, созидание, плодородие и силу проявленного роста.\nЦикл эксцентричности — 36–37 лет\nСтранность. Жёлтые нити.\nЭто период, когда прежний центр жизни перестаёт быть достаточным.\nТо, что раньше казалось устойчивым и правильным, может начать терять смысл.\nЧеловек всё чаще чувствует внутренний вопрос: Туда ли он идёт и своей ли жизнью живёт.\nЭтот цикл называется эксцентричностью, потому что происходит выход из старого центра.\nЖизнь как будто смещает человека из привычной формы, чтобы он увидел более глубокую правду о себе.\nЖёлтые нити символизируют свет, проверку, осознание и подсвечивание скрытого.\nЦикл осознания — 48–49 лет\nНаполнение. Зелёные нити.\nЭто возраст внутреннего собирания.\nЧеловек уже накопил земной опыт, многое понял о потерях, выборе, отношениях, цене поступков и смысле усилий.\nТеперь перед ним встаёт задача не просто жить, а наполнять жизнь глубиной.\nЭтот цикл называется осознанием, потому что именно здесь опыт начинает превращаться в смысл.\nЧеловек учится видеть не только события, но и их внутреннюю связь.\nЗелёные нити символизируют равновесие, сердце, созревание и соединение земного с духовным.\nЦикл оси — 60–61 лет\nСтержень. Синие нити.\nЭто один из важнейших рубежей зрелости.\nВ этом возрасте особенно ясно становится видно, на чём держалась жизнь человека, что он сумел собрать, а что осталось несформированным.\nЭтот цикл называется осью, потому что человек приходит к внутреннему стержню.\nЕму уже важны не внешние роли, а главная опора жизни: Правда, мера, мудрость, глубина и суть.\nСиние нити символизируют внутреннюю вертикаль, ясность, глубину и собранность духа.\nСмысл обряда сегодня\nСегодня обряд 12 мүчөл может быть прочитан как современная практика осознанного перехода.\nОн напоминает человеку, что каждый большой возрастной рубеж требует не только праздника, но и внутреннего завершения.\nЧтобы войти в новый этап, важно:\nЗавершить старое,\nОтпустить лишнее,\nСобрать опыт в мудрость,\nОчистить пространство жизни,\nОткрыть путь новому периоду.\n12 мүчөл — это обряд, который помогает человеку не просто стать старше, а действительно перейти.\nС точки зрения психологии 12 мүчөл нужен, чтобы человек завершил старую версию себя.\nС точки зрения физиологии — чтобы переход был прожит телом, а не только мыслью.\nС точки зрения культуры — чтобы жизнь шла не хаотично, а через осознанные врата времени.\nВ нашей игре обряды перестают быть «старыми красивыми действиями» и раскрываются как удивительно точная психология переходов.\nЗдесь видно, что традиция знала очень многое о человеке:\nЧто сила требует формы,\nЧто чувствительность без опоры становится зависимостью,\nЧто женская зрелость — это внутренняя ось, а не просто социальная роль,\nЧто союз начинается с меры, а не с демонстрации,\nЧто ребёнок с первых дней нуждается не только в уходе, но и в слове силы,\nЧто возраст нужно не бояться, а проходить,\nЧто время идёт не по прямой, а по спирали.\nИменно поэтому наша игра не просто рассказывает об обрядах.\nОна помогает человеку узнать себя в этих переходах.\nКыргызские обряды перехода — это точная система сопровождения человека через самые важные пороги жизни.\nОна помогала вовремя открыть путь ребёнку.\nСобрать достоинство мальчику.\nСобрать стихии девочке.\nОформить союз мужчины и женщины.\nЗащитить младенца в первые дни жизни.\nПомочь юноше не потеряться в силе.\nПомочь женщине не потерять центр.\nПомочь зрелому человеку пройти возраст как ступень, а не как кризис.\nКаждый обряд в этой системе выполнял внутреннюю работу:\nЗавершал старое,\nосвобождал лишнее,\nсобирал силу,\nдавал новый вектор.\nСегодня эта система снова может стать живой.\nКак методология игры.\nКак культурный код.\nКак язык внутренней трансформации.\nКак карта, благодаря которой человек перестаёт теряться во времени и начинает понимать:\nЗачем он вошёл именно в этот возраст,\nкакую силу он должен здесь собрать,\nи кем ему важно стать дальше.');
+  h+='<div class="nav"><button class="btn2" onclick="go(\'home\')">← Главная</button></div>';
+}
+
+document.getElementById('app').innerHTML=h;
+}
+
+render();
+</script>
+</body>
+</html>
